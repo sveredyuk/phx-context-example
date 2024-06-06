@@ -45,6 +45,14 @@ defmodule ErpWeb.Router do
     end
   end
 
+  @session {__MODULE__, :with_session, []}
+
+  def with_session(conn) do
+    %{
+      "current_user" => conn.assigns[:current_user]
+    }
+  end
+
   ## Authentication routes
 
   scope "/", ErpWeb do
@@ -65,6 +73,7 @@ defmodule ErpWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
+      session: @session,
       on_mount: [{ErpWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email

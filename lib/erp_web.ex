@@ -54,6 +54,8 @@ defmodule ErpWeb do
       use Phoenix.LiveView,
         layout: {ErpWeb.Layouts, :app}
 
+      on_mount(ErpWeb.Live.Hooks.AssignContext)
+
       unquote(html_helpers())
     end
   end
