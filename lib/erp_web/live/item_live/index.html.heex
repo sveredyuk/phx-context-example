@@ -1,0 +1,43 @@
+<.header>
+  Listing Items
+  <:actions>
+    <.link patch={~p"/items/new"}>
+      <.button>New Item</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="items"
+  rows={@streams.items}
+  row_click={fn {_id, item} -> JS.navigate(~p"/items/#{item}") end}
+>
+  <:col :let={{_id, item}} label="Sku"><%= item.sku %></:col>
+  <:col :let={{_id, item}} label="Name"><%= item.name %></:col>
+  <:col :let={{_id, item}} label="Price"><%= item.price %></:col>
+  <:action :let={{_id, item}}>
+    <div class="sr-only">
+      <.link navigate={~p"/items/#{item}"}>Show</.link>
+    </div>
+    <.link patch={~p"/items/#{item}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, item}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="item-modal" show on_cancel={JS.patch(~p"/items")}>
+  <.live_component
+    module={ErpWeb.ItemLive.FormComponent}
+    id={@item.id || :new}
+    title={@page_title}
+    action={@live_action}
+    item={@item}
+    patch={~p"/items"}
+  />
+</.modal>
