@@ -2,7 +2,11 @@
   Item <%= @item.id %>
   <:subtitle>This is a item record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/items/#{@item}/show/edit"} phx-click={JS.push_focus()}>
+    <.link
+      :if={Erp.Permissions.can?(@ctx, :update_items)}
+      patch={~p"/items/#{@item}/show/edit"}
+      phx-click={JS.push_focus()}
+    >
       <.button>Edit item</.button>
     </.link>
   </:actions>

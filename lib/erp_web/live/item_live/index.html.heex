@@ -1,7 +1,7 @@
 <.header>
   Listing Items
   <:actions>
-    <.link patch={~p"/items/new"}>
+    <.link :if={Erp.Permissions.can?(@ctx, :create_items)} patch={~p"/items/new"}>
       <.button>New Item</.button>
     </.link>
   </:actions>
@@ -19,10 +19,13 @@
     <div class="sr-only">
       <.link navigate={~p"/items/#{item}"}>Show</.link>
     </div>
-    <.link patch={~p"/items/#{item}/edit"}>Edit</.link>
+    <.link :if={Erp.Permissions.can?(@ctx, :update_items)} patch={~p"/items/#{item}/edit"}>
+      Edit
+    </.link>
   </:action>
   <:action :let={{id, item}}>
     <.link
+      :if={Erp.Permissions.can?(@ctx, :delete_items)}
       phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
     >
@@ -39,5 +42,6 @@
     action={@live_action}
     item={@item}
     patch={~p"/items"}
+    ctx={@ctx}
   />
 </.modal>

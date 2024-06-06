@@ -5,8 +5,8 @@ defmodule ErpWeb.ItemLive.Index do
   alias Erp.Inventory.Item
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, stream(socket, :items, Inventory.list_items())}
+  def mount(_params, _session, %{assigns: %{ctx: ctx}} = socket) do
+    {:ok, stream(socket, :items, Inventory.list_items(ctx))}
   end
 
   @impl true
@@ -14,10 +14,23 @@ defmodule ErpWeb.ItemLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Item")
-    |> assign(:item, Inventory.get_item!(id))
+  defp apply_action(%{assigns: %{ctx: ctx}} = socket, :edit, %{"id" => id}) do
+    ctx
+    |> Inventory.fetch_item(id)
+    |> case do
+      {:ok, item} ->
+        socket
+        |> assign(:page_title, "Edit Item")
+        |> assign(:item, item)
+
+      {:error, :not_found} ->
+        socket
+        |> put_flash(:error, "Not found")
+
+      {:error, :not_authorized} ->
+        socket
+        |> put_flash(:error, "Forbidden")
+    end
   end
 
   defp apply_action(socket, :new, _params) do
@@ -38,10 +51,13 @@ defmodule ErpWeb.ItemLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    item = Inventory.get_item!(id)
-    {:ok, _} = Inventory.delete_item(item)
-
-    {:noreply, stream_delete(socket, :items, item)}
+  def handle_event("delete", %{"id" => id}, %{assigns: %{ctx: ctx}} = socket) do
+    with {:ok, item} <- Inventory.fetch_item(ctx, id),
+         {:ok, _} <- Inventory.delete_item(ctx, item) do
+      {:noreply, stream_delete(socket, :items, item)}
+    else
+      {:error, :not_found} -> {:noreply, put_flash(socket, :error, "Not Found")}
+      {:error, :not_authorized} -> {:noreply, put_flash(socket, :error, "Forbidden")}
+    end
   end
 end

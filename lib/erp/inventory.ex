@@ -5,88 +5,41 @@ defmodule Erp.Inventory do
 
   import Ecto.Query, warn: false
   alias Erp.Repo
-
+  alias Erp.Context
   alias Erp.Inventory.Item
 
-  @doc """
-  Returns the list of items.
-
-  ## Examples
-
-      iex> list_items()
-      [%Item{}, ...]
-
-  """
-  def list_items do
-    Repo.all(Item)
+  def list_items(%Context{} = ctx) do
+    with {:ok, :authorized} <- Erp.Permissions.authorize(ctx, :read_items) do
+      Repo.all(Item)
+    end
   end
 
-  @doc """
-  Gets a single item.
+  def fetch_item(%Context{} = ctx, id) do
+    with {:ok, :authorized} <- Erp.Permissions.authorize(ctx, :read_items) do
+      Repo.fetch(Item, id)
+    end
+  end
 
-  Raises `Ecto.NoResultsError` if the Item does not exist.
-
-  ## Examples
-
-      iex> get_item!(123)
+  def create_item(%Context{} = ctx, attrs \\ %{}) do
+    with {:ok, :authorized} <- Erp.Permissions.authorize(ctx, :create_items) do
       %Item{}
-
-      iex> get_item!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_item!(id), do: Repo.get!(Item, id)
-
-  @doc """
-  Creates a item.
-
-  ## Examples
-
-      iex> create_item(%{field: value})
-      {:ok, %Item{}}
-
-      iex> create_item(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_item(attrs \\ %{}) do
-    %Item{}
-    |> Item.changeset(attrs)
-    |> Repo.insert()
+      |> Item.changeset(attrs)
+      |> Repo.insert()
+    end
   end
 
-  @doc """
-  Updates a item.
-
-  ## Examples
-
-      iex> update_item(item, %{field: new_value})
-      {:ok, %Item{}}
-
-      iex> update_item(item, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_item(%Item{} = item, attrs) do
-    item
-    |> Item.changeset(attrs)
-    |> Repo.update()
+  def update_item(%Context{} = ctx, %Item{} = item, attrs) do
+    with {:ok, :authorized} <- Erp.Permissions.authorize(ctx, :update_items) do
+      item
+      |> Item.changeset(attrs)
+      |> Repo.update()
+    end
   end
 
-  @doc """
-  Deletes a item.
-
-  ## Examples
-
-      iex> delete_item(item)
-      {:ok, %Item{}}
-
-      iex> delete_item(item)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_item(%Item{} = item) do
-    Repo.delete(item)
+  def delete_item(%Context{} = ctx, %Item{} = item) do
+    with {:ok, :authorized} <- Erp.Permissions.authorize(ctx, :delete_items) do
+      Repo.delete(item)
+    end
   end
 
   @doc """

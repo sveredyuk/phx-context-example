@@ -54,8 +54,8 @@ defmodule ErpWeb.ItemLive.FormComponent do
     save_item(socket, socket.assigns.action, item_params)
   end
 
-  defp save_item(socket, :edit, item_params) do
-    case Inventory.update_item(socket.assigns.item, item_params) do
+  defp save_item(%{assigns: %{ctx: ctx}} = socket, :edit, item_params) do
+    case Inventory.update_item(ctx, socket.assigns.item, item_params) do
       {:ok, item} ->
         notify_parent({:saved, item})
 
@@ -69,8 +69,8 @@ defmodule ErpWeb.ItemLive.FormComponent do
     end
   end
 
-  defp save_item(socket, :new, item_params) do
-    case Inventory.create_item(item_params) do
+  defp save_item(%{assigns: %{ctx: ctx}} = socket, :new, item_params) do
+    case Inventory.create_item(ctx, item_params) do
       {:ok, item} ->
         notify_parent({:saved, item})
 
@@ -78,6 +78,11 @@ defmodule ErpWeb.ItemLive.FormComponent do
          socket
          |> put_flash(:info, "Item created successfully")
          |> push_patch(to: socket.assigns.patch)}
+
+      {:error, :not_authorized} ->
+        socket
+        |> put_flash(:error, "Forbidden")
+        |> push_patch(to: ~p"/items")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
