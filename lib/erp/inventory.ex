@@ -42,15 +42,6 @@ defmodule Erp.Inventory do
     end
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking item changes.
-
-  ## Examples
-
-      iex> change_item(item)
-      %Ecto.Changeset{data: %Item{}}
-
-  """
   def change_item(%Item{} = item, attrs \\ %{}) do
     Item.changeset(item, attrs)
   end
